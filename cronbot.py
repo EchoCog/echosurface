@@ -1,5 +1,6 @@
 import json
-import subprocess
+import requests
+import time
 from datetime import datetime
 
 # Mock functions to simulate KV namespace interactions
@@ -16,21 +17,22 @@ class KVNamespace:
 CONFIG = KVNamespace()
 NOTES = KVNamespace()
 
-def call_ai_model(prompt):
+def call_github_copilot(note):
     """
-    Simulates an AI model call. This function should be replaced with an actual API call to your AI model.
+    Calls GitHub Copilot with the provided note to get the next improvement suggestion.
     """
-    # Example response from the AI model
-    ai_response = {
-        "improvement": {"parameter": "value"},
-        "assessment": "The system is improving."
+    query = "This is a summary of last cycle events. Please can you help me take a look at the repo so we can identify an item for the next incremental improvement?"
+    payload = {
+        "note": note,
+        "query": query
     }
-    return ai_response
+    # Replace with actual API call to GitHub Copilot
+    response = requests.post("https://api.githubcopilot.com/improvement", json=payload)
+    return response.json()
 
 def introspect_repo():
     """
     Introspects the repository to identify errors or problem areas.
-    This function should be replaced with actual logic to analyze the repository.
     """
     # Example introspection result
     introspection_result = {
@@ -42,12 +44,22 @@ def introspect_repo():
 def apply_improvement(improvement):
     """
     Applies the suggested improvement to the repository.
-    This function should be replaced with actual logic to apply improvements.
     """
     # Example of applying improvement
     print(f"Applying improvement: {improvement}")
 
+def run_workflow():
+    """
+    Runs the GitHub Actions workflow and returns the result.
+    """
+    # Simulating running workflow and checking logs
+    result = "success"
+    return result
+
 def main():
+    max_retries = 3
+    retries = 0
+
     # 1. Read the previous note
     previous_note = NOTES.get("note2self")
     if previous_note:
@@ -58,36 +70,37 @@ def main():
     # 2. Introspect the repository to identify errors or problem areas
     introspection_result = introspect_repo()
 
-    # 3. Construct the prompt for the AI model
-    prompt = {
-        "last_improvement": previous_note.get("improvement"),
-        "last_assessment": previous_note.get("assessment"),
-        "introspection_result": introspection_result
-    }
+    # 3. Call GitHub Copilot with the previous note
+    copilot_response = call_github_copilot(previous_note)
 
-    # 4. Call the AI model with the prompt
-    ai_result = call_ai_model(prompt)
+    # 4. Extract the proposed improvement from the response
+    improvement = copilot_response.get("improvement")
+    assessment = copilot_response.get("assessment")
 
-    # 5. Extract the proposed improvement and assessment from the AI response
-    improvement = ai_result.get("improvement")
-    assessment = ai_result.get("assessment")
-
-    # 6. Apply the suggested improvement
+    # 5. Apply the suggested improvement
     apply_improvement(improvement)
 
-    # 7. Update the configuration KV namespace with the improvement
-    CONFIG.put("chatbotConfig", json.dumps(improvement))
+    # 6. Run the workflow and retry if needed
+    while retries < max_retries:
+        result = run_workflow()
+        if result == "success":
+            break
+        else:
+            retries += 1
+            time.sleep(10)  # Wait before retrying
 
-    # 8. Write a new self-assessment note for this cycle
+    # 7. Document the results in note2self
     new_note = json.dumps({
         "timestamp": datetime.utcnow().isoformat(),
         "improvement": improvement,
-        "assessment": assessment
+        "assessment": assessment,
+        "result": result,
+        "retries": retries
     })
     NOTES.put("note2self", new_note)
 
-    # 9. Return a response indicating the cycle has completed
-    print(f"Self-improvement cycle complete. Assessment: {assessment}")
+    # 8. Print the result
+    print(f"Self-improvement cycle complete. Result: {result}, Assessment: {assessment}")
 
 if __name__ == "__main__":
     main()
