@@ -6,7 +6,7 @@ pynput==1.7.6
 numpy==1.23.5
 opencv-python==4.8.1.78
 Pillow==10.3.0
-tensorflow==2.14.0
+tensorflow==2.13.0
 scikit-learn==1.5.0
 psutil>=5.9.0
 openai>=1.3.7
