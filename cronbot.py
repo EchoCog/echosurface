@@ -1,5 +1,4 @@
 import json
-import base64
 import requests
 import time
 from datetime import datetime
@@ -11,7 +10,10 @@ def read_note():
         with open(NOTE_FILE, 'r') as file:
             return json.load(file)
     except FileNotFoundError:
-        return {"timestamp": None, "improvement": {}, "assessment": ""}
+        # Create a new note if the file is not found
+        new_note = {"timestamp": None, "improvement": {}, "assessment": ""}
+        write_note(new_note)
+        return new_note
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON from note file: {e}")
         return {"timestamp": None, "improvement": {}, "assessment": ""}
@@ -23,21 +25,18 @@ def write_note(note):
 def call_github_copilot(note):
     query = "This is a summary of last cycle events. Please can you help me take a look at the repo so we can identify an item for the next incremental improvement?"
     payload = {"note": note, "query": query}
-    content = base64.b64encode(json.dumps(payload).encode()).decode()
-    
-    url = "https://api.github.com/repos/EchoCog/echosurface/contents/.github/workflows/request_payload.json"
-    headers = {
-        "Authorization": f"token {os.getenv('GITHUB_TOKEN')}",
-        "Content-Type": "application/json"
-    }
-    data = {
+    # Using a GitHub Action to handle the request
+    with open('.github/workflows/request_payload.json', 'w') as f:
+        json.dump(payload, f)
+    # Commit the request payload to the repository
+    # This will trigger the GitHub Action workflow
+    with open('.github/workflows/request_payload.json', 'w') as f:
+        json.dump(payload, f)
+    response = requests.post("https://api.github.com/repos/EchoCog/echosurface/contents/.github/workflows/request_payload.json", json={
         "message": "Add request payload",
-        "content": content,
+        "content": json.dumps(payload).encode('utf-8').decode('ascii'),
         "branch": "main"
-    }
-    
-    response = requests.put(url, headers=headers, json=data)
-    
+    })
     try:
         if response.headers.get('Content-Type') == 'application/json':
             return response.json()
