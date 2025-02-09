@@ -28,7 +28,11 @@ def call_github_copilot(note):
     }
     # Replace with actual API call to GitHub Copilot
     response = requests.post("https://api.githubcopilot.com/improvement", json=payload)
-    return response.json()
+    try:
+        return response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        print(f"Failed to decode JSON: {e}")
+        return None
 
 def introspect_repo():
     """
