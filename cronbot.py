@@ -3,7 +3,7 @@ import requests
 import time
 from datetime import datetime
 
-NOTE_FILE = "note2self.txt"
+NOTE_FILE = "note2self.json"
 
 def read_note():
     try:
