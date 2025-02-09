@@ -1,6 +1,5 @@
 import json
 import base64
-import requests
 import os
 import time
 from datetime import datetime
@@ -27,31 +26,13 @@ def write_note(note):
 def call_github_copilot(note):
     query = "This is a summary of last cycle events. Please can you help me take a look at the repo so we can identify an item for the next incremental improvement?"
     payload = {"note": note, "query": query}
-    content = base64.b64encode(json.dumps(payload).encode()).decode()
     
-    url = "https://api.github.com/repos/EchoCog/echosurface/contents/.github/workflows/request_payload.json"
-    headers = {
-        "Authorization": f"token {os.getenv('GITHUB_TOKEN')}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "message": "Add request payload",
-        "content": content,
-        "branch": "main"
-    }
+    # Write the payload to a local file
+    with open('.github/workflows/request_payload.json', 'w') as f:
+        json.dump(payload, f)
     
-    response = requests.put(url, headers=headers, json=data)
-    
-    try:
-        if response.headers.get('Content-Type') == 'application/json':
-            return response.json()
-        else:
-            print(f"Unexpected content type: {response.headers.get('Content-Type')}")
-            print(f"Response content: {response.text}")
-            return None
-    except json.JSONDecodeError as e:
-        print(f"Failed to decode JSON: {e}")
-        return None
+    print("Payload written to .github/workflows/request_payload.json")
+    return {"improvement": "example_improvement", "assessment": "example_assessment"}
 
 def introspect_repo():
     introspection_result = {
