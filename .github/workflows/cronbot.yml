@@ -1,0 +1,35 @@
+name: Self-Evo
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch: # Allows manual trigger of the workflow
+
+jobs:
+  self_improvement:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run self-improvement script
+        run: |
+          python cronbot.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add note2self.json .github/workflows/request_payload.json
+          git commit -m 'Update note2self.json and request_payload.json'
+          git push
