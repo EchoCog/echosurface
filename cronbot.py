@@ -77,6 +77,11 @@ def main():
     # 3. Call GitHub Copilot with the previous note
     copilot_response = call_github_copilot(previous_note)
 
+    # Check if copilot_response is None
+    if copilot_response is None:
+        print("Failed to get a valid response from GitHub Copilot.")
+        return
+
     # 4. Extract the proposed improvement from the response
     improvement = copilot_response.get("improvement")
     assessment = copilot_response.get("assessment")
