@@ -28,8 +28,9 @@ def call_github_copilot(note):
             return response.json()
         else:
             print(f"Unexpected content type: {response.headers.get('Content-Type')}")
+            print(f"Response content: {response.text}")
             return None
-    except requests.exceptions.JSONDecodeError as e:
+    except json.JSONDecodeError as e:
         print(f"Failed to decode JSON: {e}")
         return None
 
