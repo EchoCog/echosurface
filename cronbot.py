@@ -22,7 +22,18 @@ def write_note(note):
 def call_github_copilot(note):
     query = "This is a summary of last cycle events. Please can you help me take a look at the repo so we can identify an item for the next incremental improvement?"
     payload = {"note": note, "query": query}
-    response = requests.post("https://api.githubcopilot.com/improvement", json=payload)
+    # Using a GitHub Action to handle the request
+    with open('.github/workflows/request_payload.json', 'w') as f:
+        json.dump(payload, f)
+    # Commit the request payload to the repository
+    # This will trigger the GitHub Action workflow
+    with open('.github/workflows/request_payload.json', 'w') as f:
+        json.dump(payload, f)
+    response = requests.post("https://api.github.com/repos/EchoCog/echosurface/contents/.github/workflows/request_payload.json", json={
+        "message": "Add request payload",
+        "content": json.dumps(payload).encode('utf-8').decode('ascii'),
+        "branch": "main"
+    })
     try:
         if response.headers.get('Content-Type') == 'application/json':
             return response.json()
