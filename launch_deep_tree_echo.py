@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import logging
+import loggingpy
 import sys
 import asyncio
 import subprocess
@@ -268,3 +268,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
